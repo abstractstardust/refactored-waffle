@@ -49,8 +49,8 @@ def ssl_cert_check_handler():
                 "expires": expires.isoformat(),
                 "days until expiration": time_until_expiration.days,
             }
-        except Exception as e:
-            print("ssl_info error: %s" % e)
+        except Exception as GetPeerCertError:
+            return ("ERROR: ", GetPeerCertError)
 
     print(json.dumps(res, indent=2))
     return json.dumps(res)
