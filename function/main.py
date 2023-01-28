@@ -52,7 +52,6 @@ def ssl_cert_check_handler():
         except Exception as GetPeerCertError:
             return ("ERROR: ", GetPeerCertError)
 
-    print(json.dumps(res, indent=2))
     return json.dumps(res)
 
 
