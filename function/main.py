@@ -32,7 +32,7 @@ def ssl_cert_check_handler():
     except Exception as HostConnectionError:
         res = {
             "domain": hostname,
-            "valid": (False, HostConnectionError.args[1])
+            "is_valid": (False, HostConnectionError.args[1])
         }
     else:
         try:
@@ -45,7 +45,7 @@ def ssl_cert_check_handler():
 
             res = {
                 "domain": hostname,
-                "valid": valid,
+                "is_valid": valid,
                 "expires": expires.isoformat(),
                 "days until expiration": time_until_expiration.days,
             }
