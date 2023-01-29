@@ -9,6 +9,8 @@
 
 ### Terraform
 
+1. Navigate to the infrastructure directory and follow the commands below
+
 ```sh
 terraform init
 ```
@@ -27,6 +29,10 @@ There are several ways to use this program.
 
    ```sh
    curl "$(terraform output -raw base_url)/fearless.tech"
+   ```
+
+   ```sh
+   curl "$(terraform output -raw base_url)/untrusted-root.badssl.com"
    ```
 
     `fearless.tech` can be replaced with another domain to check for its validity.
