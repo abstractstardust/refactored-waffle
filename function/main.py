@@ -4,36 +4,29 @@ import ssl
 import json
 
 
-def ssl_cert_check_handler():
-    # bad hosts
-    # hostname = "expired.badssl.com"
-    # hostname = "wrong.host.badssl.com"
-    # hostname = "self-signed.badssl.com"
-    # hostname = "untrusted-root.badssl.com"
-    # hostname = "revoked.badssl.com"
-
-    # good hosts
-    hostname = "https-everywhere.badssl.com"
+def ssl_cert_check_handler(event, context):
+    domain = event["pathParameters"]["domain"]
 
     ssl_date_fmt = r'%b %d %H:%M:%S %Y %Z'
 
     context = ssl.create_default_context()
     conn = context.wrap_socket(
         socket.socket(socket.AF_INET),
-        server_hostname=hostname,
+        server_hostname=domain,
     )
 
     # 3 second timeout because Lambda has runtime limitations
     conn.settimeout(3.0)
 
+    res = {}
+
     try:
         # connect to a server
-        conn.connect((hostname, 443))
+        conn.connect((domain, 443))
     except Exception as HostConnectionError:
-        res = {
-            "domain": hostname,
-            "is_valid": (False, HostConnectionError.args[1])
-        }
+        res['domain'] = domain
+        res['is_valid'] = False
+        res['issue'] = HostConnectionError.args[1]
     else:
         try:
             ssl_info = conn.getpeercert()
@@ -43,16 +36,13 @@ def ssl_cert_check_handler():
             valid = expires > datetime.datetime.utcnow()
             time_until_expiration = expires - datetime.datetime.utcnow()
 
-            res = {
-                "domain": hostname,
-                "is_valid": valid,
-                "expires": expires.isoformat(),
-                "days until expiration": time_until_expiration.days,
-            }
+            res['domain'] = domain
+            res['is_valid'] = valid
+            res['expires'] = expires.isoformat()
+            res['days until expiration'] = time_until_expiration.days
+
         except Exception as GetPeerCertError:
             return ("ERROR: ", GetPeerCertError)
 
-    return json.dumps(res)
-
-
-ssl_cert_check_handler()
+    return {'statusCode': 200, 'headers': {'Content-Type': 'application/json'
+                                           }, 'body': json.dumps(res)}
