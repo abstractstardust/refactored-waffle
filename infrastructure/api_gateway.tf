@@ -9,7 +9,7 @@ resource "aws_api_gateway_rest_api" "certficate_api" {
 resource "aws_api_gateway_resource" "api_domain_resource" {
   rest_api_id = aws_api_gateway_rest_api.certficate_api.id
   parent_id   = aws_api_gateway_rest_api.certficate_api.root_resource_id
-  path_part   = "{domain}"
+  path_part   = "domain"
 }
 
 # GET Request Method
@@ -27,7 +27,19 @@ resource "aws_api_gateway_integration" "lambda_integration" {
   http_method             = aws_api_gateway_method.api_domain_method.http_method
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.ssl_lambda.invoke_arn
+  uri                     = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/${aws_lambda_function.ssl_lambda.arn}/invocations" # needs to be the ARN of the API Gateway, which also contains the arn of the Lambda.
+
+}
+
+# API Gateway needs permission to invoke the Lambda funcion
+
+resource "aws_lambda_permission" "lambda_execute" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.ssl_lambda.function_name
+  principal     = "apigateway.amazonaws.com"
+  # More: http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-control-access-using-iam-policies-to-invoke-api.html
+  source_arn = "arn:aws:execute-api:us-east-1:${local.account_id}:${aws_api_gateway_rest_api.certficate_api.id}/*/${aws_api_gateway_method.api_domain_method.http_method}${aws_api_gateway_resource.api_domain_resource.path}"
 }
 
 # Deployment
