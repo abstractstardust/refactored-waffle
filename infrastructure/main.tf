@@ -1,3 +1,9 @@
+variable "account_id" {}
+
+locals {
+  account_id = var.account_id # Added just so I could deploy to my AWS account.
+}
+
 terraform {
   required_providers {
     aws = {
